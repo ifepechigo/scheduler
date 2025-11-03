@@ -187,7 +187,7 @@ export async function assignUserToDepartment(userId: string, departmentId: strin
   })
 
   console.log("[v0] Revalidating paths...")
-  revalidatePath("/all-users", "page")
+  revalidatePath("/all-users", "layout")
   revalidatePath(`/all-users/${userId}`, "page")
   revalidatePath("/managers", "page")
   revalidatePath("/departments", "page")
