@@ -6,14 +6,19 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[v0] Missing Supabase environment variables")
+    console.error("[v0] Missing Supabase environment variables in middleware")
     console.error("[v0] NEXT_PUBLIC_SUPABASE_URL:", supabaseUrl ? "present" : "missing")
     console.error("[v0] NEXT_PUBLIC_SUPABASE_ANON_KEY:", supabaseAnonKey ? "present" : "missing")
 
+    // Allow auth routes to proceed even without Supabase configured
     if (request.nextUrl.pathname.startsWith("/auth")) {
       return NextResponse.next()
     }
-    return NextResponse.next()
+
+    // Redirect to a setup page or show error
+    const url = request.nextUrl.clone()
+    url.pathname = "/auth/login"
+    return NextResponse.redirect(url)
   }
 
   let supabaseResponse = NextResponse.next({
@@ -26,7 +31,7 @@ export async function updateSession(request: NextRequest) {
         return request.cookies.getAll()
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
         supabaseResponse = NextResponse.next({
           request,
         })
@@ -39,15 +44,9 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && !request.nextUrl.pathname.startsWith("/auth") && request.nextUrl.pathname !== "/") {
+  if (!user && !request.nextUrl.pathname.startsWith("/auth")) {
     const url = request.nextUrl.clone()
     url.pathname = "/auth/login"
-    return NextResponse.redirect(url)
-  }
-
-  if (user && request.nextUrl.pathname.startsWith("/auth")) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/dashboard"
     return NextResponse.redirect(url)
   }
 

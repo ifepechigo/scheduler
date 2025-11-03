@@ -1,53 +1,101 @@
 "use client"
 
+import { cn } from "@/lib/utils"
+import {
+  BarChart3,
+  Calendar,
+  LayoutDashboard,
+  Settings,
+  Users,
+  Building2,
+  LogOut,
+  Clock,
+  UserCog,
+  UserCheck,
+} from "lucide-react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Users, Building2, Calendar, LogOut } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import type { Profile } from "@/lib/types"
 
-export function Sidebar() {
+interface SidebarProps {
+  user: Profile
+}
+
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClient()
 
   const handleLogout = async () => {
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push("/auth/login")
     router.refresh()
   }
 
-  const links = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/all-users", label: "All Users", icon: Users },
-    { href: "/departments", label: "Departments", icon: Building2 },
-    { href: "/schedule", label: "Schedule", icon: Calendar },
+  const navigation = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "manager", "employee"] },
+    { name: "Scheduler", href: "/scheduler", icon: Calendar, roles: ["admin", "manager"] },
+    { name: "Time Off", href: "/time-off", icon: Clock, roles: ["admin", "manager"] },
+    { name: "Availability", href: "/employees", icon: Users, roles: ["manager"] },
+    { name: "All Users", href: "/all-users", icon: UserCog, roles: ["admin"] },
+    { name: "Managers", href: "/managers", icon: UserCheck, roles: ["admin"] },
+    { name: "Departments", href: "/departments", icon: Building2, roles: ["admin"] },
+    { name: "Reports", href: "/reports", icon: BarChart3, roles: ["admin", "manager"] },
+    { name: "Settings", href: "/settings", icon: Settings, roles: ["admin", "manager", "employee"] },
   ]
+
+  const filteredNavigation = navigation.filter((item) => item.roles.includes(user.role))
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-background">
-      <div className="p-6">
-        <h2 className="text-2xl font-bold">Scheduler</h2>
+      <div className="flex h-16 items-center gap-2 border-b px-6">
+        <Calendar className="h-6 w-6 text-primary" />
+        <span className="text-lg font-semibold">Schedul.io</span>
       </div>
-      <nav className="flex-1 space-y-1 p-4">
-        {links.map((link) => {
-          const Icon = link.icon
-          return (
-            <Link key={link.href} href={link.href}>
-              <Button variant={pathname === link.href ? "secondary" : "ghost"} className="w-full justify-start">
-                <Icon className="mr-2 h-4 w-4" />
-                {link.label}
-              </Button>
-            </Link>
-          )
-        })}
-      </nav>
-      <div className="p-4">
-        <Button variant="outline" className="w-full bg-transparent" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
-        </Button>
+
+      <div className="flex flex-1 flex-col gap-1 p-4">
+        <div className="mb-4 flex items-center gap-3 rounded-lg bg-muted p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            {user.full_name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <p className="truncate text-sm font-medium">{user.full_name}</p>
+            <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+          </div>
+        </div>
+
+        <nav className="flex flex-col gap-1">
+          {filteredNavigation.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                {item.name}
+              </Link>
+            )
+          })}
+        </nav>
+      </div>
+
+      <div className="border-t p-4">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="h-5 w-5" />
+          Log out
+        </button>
       </div>
     </div>
   )

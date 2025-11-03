@@ -1,17 +1,15 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import "./globals.css"
-import { Toaster } from "@/components/ui/sonner"
-import { Sidebar } from "@/components/sidebar"
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
 
-const geistSans = Geist({ subsets: ["latin"] })
-const geistMono = Geist_Mono({ subsets: ["latin"] })
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Employee Scheduling System",
-  description: "Manage employee schedules and departments",
-    generator: 'v0.app'
+  title: 'v0 App',
+  description: 'Created with v0',
+  generator: 'v0.app',
 }
 
 export default function RootLayout({
@@ -21,12 +19,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.className} antialiased`}>
-        <div className="flex h-screen">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto p-8">{children}</main>
-        </div>
-        <Toaster />
+      <body className={`font-sans antialiased`}>
+        {children}
+        <Analytics />
       </body>
     </html>
   )
