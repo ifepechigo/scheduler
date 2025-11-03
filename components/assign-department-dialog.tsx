@@ -68,14 +68,7 @@ export function AssignDepartmentDialog({
           description: result.message,
         })
         setOpen(false)
-
         router.refresh()
-        setTimeout(() => {
-          router.refresh()
-        }, 100)
-        setTimeout(() => {
-          router.refresh()
-        }, 300)
       }
     } catch (error) {
       console.log("[v0] Assignment exception:", error)
